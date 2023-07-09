@@ -18,34 +18,32 @@ pipeline:
           execution:
             steps:
               - step:
-                  identifier: npminstall
-                  name: npm_install
+                  type: Run
+                  name: Run_1
+                  identifier: Run_1
                   spec:
+                    shell: Sh
                     command: npm install
-                  timeout: ""
-                  type: Run
               - step:
-                  identifier: npmtest
-                  name: npm_test
-                  spec:
-                    command: npm run test
-                  timeout: ""
                   type: Run
-              - step:
-                  identifier: dockerbuild
-                  name: docker_build
+                  name: Run_2
+                  identifier: Run_2
                   spec:
-                    image: plugins/docker
-                    settings:
-                      dry_run: "true"
-                      repo: hello/world
-                      tags: latest
-                  timeout: ""
-                  type: Plugin
+                    shell: Sh
+                    command: npm test
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: BuildAndPushDockerRegistry_1
+                  identifier: BuildAndPushDockerRegistry_1
+                  spec:
+                    connectorRef: docker_pat
+                    repo: docskrishna/harness_repo
+                    tags:
+                      - latest
           platform:
-            arch: Amd64
             os: Linux
+            arch: Arm64
           runtime:
-            spec: {}
             type: Cloud
+            spec: {}
         type: CI
