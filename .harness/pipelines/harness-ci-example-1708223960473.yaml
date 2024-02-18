@@ -18,36 +18,72 @@ pipeline:
           execution:
             steps:
               - step:
-                  identifier: installdependencies
-                  name: install dependencies
+                  type: Run
+                  name: Run_1
+                  identifier: Run_1
                   spec:
+                    shell: Sh
                     command: npm install
-                  timeout: ""
-                  type: Run
               - step:
-                  identifier: test
-                  name: test
-                  spec:
-                    command: npm run test
-                  timeout: ""
                   type: Run
-              - step:
-                  identifier: dockerbuild
-                  name: docker_build
+                  name: Run_2
+                  identifier: Run_2
                   spec:
-                    image: plugins/docker
-                    settings:
-                      dry_run: "true"
-                      password: <+input>
-                      repo: hello/world
-                      tags: latest
-                      username: <+input>
-                  timeout: ""
-                  type: Plugin
+                    shell: Sh
+                    command: npm test
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: BuildAndPushDockerRegistry_1
+                  identifier: BuildAndPushDockerRegistry_1
+                  spec:
+                    connectorRef: docker_pat
+                    repo: docskrishna/harness_repo
+                    tags:
+                      - latest
           platform:
-            arch: Amd64
             os: Linux
+            arch: Amd64
           runtime:
-            spec: {}
             type: Cloud
+            spec: {}
         type: CI
+        description: ""
+    - stage:
+        name: deploy
+        identifier: deploy
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: svc
+          environment:
+            environmentRef: env
+            deployToAll: false
+            infrastructureDefinitions:
+              - identifier: infra
+          execution:
+            steps:
+              - step:
+                  name: Rollout Deployment
+                  identifier: rolloutDeployment
+                  type: K8sRollingDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+            rollbackSteps:
+              - step:
+                  name: Rollback Rollout Deployment
+                  identifier: rollbackRolloutDeployment
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec:
+                    pruningEnabled: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
