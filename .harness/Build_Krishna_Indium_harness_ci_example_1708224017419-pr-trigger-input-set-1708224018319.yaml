@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_Krishna_Indium_harness_ci_example_1708224017419-pr-trigger-input-set
+  identifier: Build_Krishna_Indium_harness_ci_example_1708224017419prtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: dev
+  pipeline:
+    identifier: Build_Krishna_Indium_harness_ci_example_1708224017419
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
