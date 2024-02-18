@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_Krishna_Indium_harness_ci_example_1708224017419-push-trigger-input-set
+  identifier: Build_Krishna_Indium_harness_ci_example_1708224017419pushtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: dev
+  pipeline:
+    identifier: Build_Krishna_Indium_harness_ci_example_1708224017419
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
