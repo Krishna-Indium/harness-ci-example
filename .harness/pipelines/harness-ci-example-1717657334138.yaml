@@ -1,0 +1,35 @@
+pipeline:
+  identifier: Build_harness_ci_example_1717657336656
+  name: Build harness-ci-example
+  orgIdentifier: default
+  projectIdentifier: Generative_AI
+  properties:
+    ci:
+      codebase:
+        build: <+input>
+        connectorRef: account.KrishnaIndium
+        repoName: harness-ci-example
+  stages:
+    - stage:
+        identifier: build
+        name: build
+        spec:
+          caching:
+            enabled: true
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  identifier: echo
+                  name: echo
+                  spec:
+                    command: echo hello world
+                  timeout: ""
+                  type: Run
+          platform:
+            arch: Amd64
+            os: Linux
+          runtime:
+            spec: {}
+            type: Cloud
+        type: CI
