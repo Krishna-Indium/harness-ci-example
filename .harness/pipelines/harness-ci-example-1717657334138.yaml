@@ -45,28 +45,3 @@ pipeline:
             type: Cloud
             spec: {}
         type: CI
-    - stage:
-        name: CFT
-        identifier: CFT
-        description: ""
-        type: Custom
-        spec:
-          execution:
-            steps:
-              - step:
-                  type: CreateStack
-                  name: CreateStack_1
-                  identifier: CreateStack_1
-                  spec:
-                    provisionerIdentifier: CreateStack
-                    configuration:
-                      stackName: s3-stack-harness
-                      region: ap-south-1
-                      templateFile:
-                        type: Inline
-                        spec:
-                          templateBody: asdfg
-                      roleArn: ""
-                      connectorRef: aws_connnect
-                  timeout: 10m
-        tags: {}
