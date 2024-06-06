@@ -23,7 +23,10 @@ pipeline:
                   identifier: echo
                   name: echo
                   spec:
-                    command: echo hello world
+                    shell: Sh
+                    command: |-
+                      npm install
+                      npm test
                   timeout: ""
                   type: Run
               - step:
