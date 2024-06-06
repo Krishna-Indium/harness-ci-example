@@ -53,103 +53,420 @@ pipeline:
               - identifier: stage_infra1
           execution:
             steps:
-              - step:
-                  type: CreateStack
-                  name: CreateStack_1
-                  identifier: CreateStack_1
-                  spec:
-                    provisionerIdentifier: Create_Stack
-                    configuration:
-                      stackName: s3-harness
-                      connectorRef: aws_connector
-                      region: us-east-1
-                      templateFile:
-                        type: Inline
-                        spec:
-                          templateBody: |
-                            AWSTemplateFormatVersion: '2010-09-09'
+              - parallel:
+                  - step:
+                      type: CreateStack
+                      name: CreateStack_1
+                      identifier: CreateStack_1
+                      spec:
+                        provisionerIdentifier: Create_Stack
+                        configuration:
+                          stackName: s3-harness
+                          connectorRef: aws_connector
+                          region: us-east-1
+                          templateFile:
+                            type: Inline
+                            spec:
+                              templateBody: |
+                                AWSTemplateFormatVersion: '2010-09-09'
 
-                            Parameters:
-                              S3BucketName:
-                                Type: String
-                                Description: S3 Bucket Name
-                                Default: "harness-cft-template-s3"
+                                Parameters:
+                                  S3BucketName:
+                                    Type: String
+                                    Description: S3 Bucket Name
+                                    Default: "harness-cft-template-s3"
 
-                              TagTRCDescription:
-                                Type: String
-                                Description: TRC-Description
-                                Default: "ZZ - Captures 2.0 Sandbox"
-                              TagTRCSector:
-                                Type: String
-                                Description: TRC-Sector
-                                Default: "ZZ"
-                              TagTRCOwner:
-                                Type: String
-                                Description: TRC-Owner
-                                Default: "Sanjay Jha"
-                              TagTRCPractice:
-                                Type: String
-                                Description: TRC-Practice
-                                Default: "ZAT"
-                              TagTRCOrgCode:
-                                Type: String
-                                Description: TRC-OrgCode
-                                Default: "6.A.IRV.ZZ.ZAT"
-                              TagTRCAllocationCode:
-                                Type: String
-                                Description: TRC-AllocationCode
-                                Default: "310549"
-                              TagProject:
-                                Type: String
-                                Description: Project
-                                Default: "Captures 2.0"
-                              TagCreatedBy:
-                                Type: String
-                                Description: Created by
-                                Default: "Krishnamoorthy"
+                                Resources:
+                                  S3Bucket:
+                                    Type: AWS::S3::Bucket
+                                    Properties:
+                                      BucketName: !Ref S3BucketName
+                                      PublicAccessBlockConfiguration:
+                                        BlockPublicAcls: false
+                                      OwnershipControls:
+                                        Rules:
+                                          - ObjectOwnership: ObjectWriter
+                                      VersioningConfiguration:
+                                        Status: Enabled
+                                      BucketEncryption:
+                                        ServerSideEncryptionConfiguration:
+                                          - ServerSideEncryptionByDefault:
+                                              SSEAlgorithm: AES256
+                                      WebsiteConfiguration:
+                                        IndexDocument: index.html
+                                        ErrorDocument: error.html
+                                      Tags:
+                                        - Key: "Name"
+                                          Value: !Ref S3BucketName
+                                        - Key: "TRC-Description"
+                                          Value: !Ref TagTRCDescription
+                                        - Key: "TRC-Sector"
+                                          Value: !Ref TagTRCSector
+                                        - Key: "TRC-Owner"
+                                          Value: !Ref TagTRCOwner
+                                        - Key: "TRC-Practice"
+                                          Value: !Ref TagTRCPractice
+                                        - Key: "TRC-OrgCode"
+                                          Value: !Ref TagTRCOrgCode
+                                        - Key: "TRC-AllocationCode"
+                                          Value: !Ref TagTRCAllocationCode
+                                        - Key: "Project"
+                                          Value: !Ref TagProject
+                                        - Key: "CreatedBy"
+                                          Value: !Ref TagCreatedBy
+                                    # DeletionPolicy: Retain
+                                    # UpdateReplacePolicy: Retain
+                          roleArn: ""
+                      timeout: 10m
+                  - step:
+                      type: CreateStack
+                      name: CreateStack_2
+                      identifier: CreateStack_2
+                      spec:
+                        provisionerIdentifier: CreateStack
+                        configuration:
+                          stackName: ECS-cluster
+                          connectorRef: aws_connector
+                          region: us-east-1
+                          templateFile:
+                            type: Inline
+                            spec:
+                              templateBody: |
+                                AWSTemplateFormatVersion: '2010-09-09'
+                                Description: container cluster on ECS, loadbalancer, security groups and cloudwatch
 
-                            Resources:
-                              S3Bucket:
-                                Type: AWS::S3::Bucket
-                                Properties:
-                                  BucketName: !Ref S3BucketName
-                                  PublicAccessBlockConfiguration:
-                                    BlockPublicAcls: false
-                                  OwnershipControls:
-                                    Rules:
-                                      - ObjectOwnership: ObjectWriter
-                                  VersioningConfiguration:
-                                    Status: Enabled
-                                  BucketEncryption:
-                                    ServerSideEncryptionConfiguration:
-                                      - ServerSideEncryptionByDefault:
-                                          SSEAlgorithm: AES256
-                                  WebsiteConfiguration:
-                                    IndexDocument: index.html
-                                    ErrorDocument: error.html
-                                  Tags:
-                                    - Key: "Name"
-                                      Value: !Ref S3BucketName
-                                    - Key: "TRC-Description"
-                                      Value: !Ref TagTRCDescription
-                                    - Key: "TRC-Sector"
-                                      Value: !Ref TagTRCSector
-                                    - Key: "TRC-Owner"
-                                      Value: !Ref TagTRCOwner
-                                    - Key: "TRC-Practice"
-                                      Value: !Ref TagTRCPractice
-                                    - Key: "TRC-OrgCode"
-                                      Value: !Ref TagTRCOrgCode
-                                    - Key: "TRC-AllocationCode"
-                                      Value: !Ref TagTRCAllocationCode
-                                    - Key: "Project"
-                                      Value: !Ref TagProject
-                                    - Key: "CreatedBy"
-                                      Value: !Ref TagCreatedBy
-                                # DeletionPolicy: Retain
-                                # UpdateReplacePolicy: Retain
-                      roleArn: ""
-                  timeout: 10m
+                                Parameters:
+                                  ClusterName:
+                                    Type: String
+                                    Description: Name of the ECS Cluster
+                                  LoadBalancerName:
+                                    Type: String
+                                    Description: Name of the Loadbalancer
+                                  TargetGroupName:
+                                    Type: String
+                                    Description: Name of the Target Group
+                                  LogGroupName:
+                                    Type: String
+                                    Description: Name of the LogGroup
+
+                                Resources:
+                                  
+                                  ECSCluster:
+                                    Type: AWS::ECS::Cluster
+                                    Properties:
+                                      ClusterName: !Ref ClusterName
+
+                                  LoadBalancer:
+                                    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+                                    Properties:
+                                      Name: !Ref LoadBalancerName
+                                      Subnets:
+                                        - !ImportValue 'PublicSubnet1'
+                                        - !ImportValue 'PublicSubnet2'
+                                      SecurityGroups:
+                                        - !Ref LoadBalancerSecurityGroup
+
+                                  TargetGroup:
+                                    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+                                    Properties:
+                                      Name: !Ref TargetGroupName
+                                      VpcId: !ImportValue VPC
+                                      Port: 80
+                                      Protocol: HTTP
+                                      Matcher:
+                                        HttpCode: 200-299
+                                      HealthCheckIntervalSeconds: 10
+                                      HealthCheckPath: /
+                                      HealthCheckProtocol: HTTP
+                                      HealthCheckPort: 8000
+                                      HealthCheckTimeoutSeconds: 5
+                                      HealthyThresholdCount: 10
+                                      TargetType: ip
+
+                                  LoadBalancerListener:
+                                    Type: AWS::ElasticLoadBalancingV2::Listener
+                                    Properties:
+                                      LoadBalancerArn: !Ref LoadBalancer
+                                      Protocol: HTTP
+                                      Port: 80
+                                      DefaultActions:
+                                        - Type: forward
+                                          TargetGroupArn: !Ref TargetGroup
+
+                                  LoadBalancerSecurityGroup:
+                                    Type: AWS::EC2::SecurityGroup
+                                    Properties:
+                                      GroupDescription: Security group for loadbalancer to services on ECS
+                                      VpcId: !ImportValue 'VPC'
+                                      SecurityGroupIngress:
+                                        - CidrIp: 0.0.0.0/0
+                                          IpProtocol: -1
+
+                                  CloudWatchLogsGroup:
+                                    Type: AWS::Logs::LogGroup
+                                    Properties:
+                                      LogGroupName: !Ref LogGroupName
+                                      RetentionInDays: 7
+
+                                  ContainerSecurityGroup:
+                                    Type: AWS::EC2::SecurityGroup      
+                                    Properties:
+                                      VpcId: !ImportValue 'VPC'
+                                      GroupDescription: for ecs containers
+                                      SecurityGroupIngress:
+                                        - SourceSecurityGroupId: !Ref 'LoadBalancerSecurityGroup'
+                                          IpProtocol: -1
+
+                                Outputs:
+                                  
+                                  ECSCluster:
+                                    Value: !Ref ECSCluster
+                                    Export:
+                                      Name: 'ECSCluster'
+
+                                  Listener:
+                                    Description: listener port 80
+                                    Value: !Ref LoadBalancerListener
+                                    Export:
+                                      Name: 'Listener'
+
+                                  ContainerSecurityGroup:
+                                    Description: container security group
+                                    Value: !Ref ContainerSecurityGroup
+                                    Export:
+                                      Name: 'ContainerSecurityGroup'
+
+                                  LoadBalancerDNS:
+                                    Description: Domain name for the loadbalancer
+                                    Value: !GetAtt LoadBalancer.DNSName
+                                    Export:
+                                      Name: 'DomainName'
+
+                                  
+                                  TargetGroup:
+                                    Description: Target Group forward to ECS
+                                    Value: !Ref TargetGroup
+                                    Export:
+                                      Name: 'TargetGroup'
+                          roleArn: ""
+                          parameterOverrides:
+                            - name: LoadBalancerName
+                              value: ECS-harness-lb
+                              type: String
+                            - name: ClusterName
+                              value: ECS-harness-cluster
+                              type: String
+                            - name: LogGroupName
+                              value: ECS-harness-log
+                              type: String
+                            - name: TargetGroupName
+                              value: ECS-harness-tq
+                              type: String
+                      timeout: 10m
+                  - step:
+                      type: CreateStack
+                      name: CreateStack_3
+                      identifier: CreateStack_3
+                      spec:
+                        provisionerIdentifier: CreateStack
+                        configuration:
+                          stackName: VPC-harness
+                          connectorRef: aws_connector
+                          region: us-east-1
+                          templateFile:
+                            type: Inline
+                            spec:
+                              templateBody: |-
+                                AWSTemplateFormatVersion: '2010-09-09'
+                                Description: VPC for ecs qa
+
+                                Resources:
+
+                                  VPC:
+                                    Type: 'AWS::EC2::VPC'
+                                    Properties:
+                                      CidrBlock: '10.200.0.0/16'
+                                      EnableDnsSupport: true
+                                      EnableDnsHostnames: true
+                                      InstanceTenancy: default
+
+                                  Subnet1:
+                                    Type: AWS::EC2::Subnet
+                                    Properties:
+                                      VpcId: !Ref VPC
+                                      AvailabilityZone: !Select [0, !GetAZs '']
+                                      CidrBlock: !Sub '10.200.0.0/24'
+                                      MapPublicIpOnLaunch: true
+
+                                  Subnet2:
+                                    Type: AWS::EC2::Subnet
+                                    Properties:
+                                      VpcId: !Ref VPC
+                                      AvailabilityZone: !Select [1, !GetAZs '']
+                                      CidrBlock: !Sub '10.200.1.0/24'
+                                      MapPublicIpOnLaunch: true
+
+                                  Subnet3:
+                                    Type: AWS::EC2::Subnet
+                                    Properties:
+                                      VpcId: !Ref VPC
+                                      AvailabilityZone: !Select [2, !GetAZs '']
+                                      CidrBlock: !Sub '10.200.2.0/24'
+                                      MapPublicIpOnLaunch: true
+
+                                  Subnet4:
+                                    Type: AWS::EC2::Subnet
+                                    Properties:
+                                      VpcId: !Ref VPC
+                                      AvailabilityZone: !Select [0, !GetAZs '']
+                                      CidrBlock: !Sub '10.200.3.0/24'
+                                      MapPublicIpOnLaunch: true
+
+                                  Subnet5:
+                                    Type: AWS::EC2::Subnet
+                                    Properties:
+                                      VpcId: !Ref VPC
+                                      AvailabilityZone: !Select [1, !GetAZs '']
+                                      CidrBlock: !Sub '10.200.4.0/24'
+                                      MapPublicIpOnLaunch: true
+
+                                  Subnet6:
+                                    Type: AWS::EC2::Subnet
+                                    Properties:
+                                      VpcId: !Ref VPC
+                                      AvailabilityZone: !Select [2, !GetAZs '']
+                                      CidrBlock: !Sub '10.200.5.0/24'
+                                      MapPublicIpOnLaunch: true
+
+                                  InternetGateway:
+                                    Type: 'AWS::EC2::InternetGateway'
+                                    Properties:
+
+                                  VPCGatewayAttachment:
+                                    Type: 'AWS::EC2::VPCGatewayAttachment'
+                                    Properties:
+                                      InternetGatewayId: !Ref InternetGateway
+                                      VpcId: !Ref VPC
+
+                                  RouteTable:
+                                    Type: 'AWS::EC2::RouteTable'
+                                    Properties:
+                                      VpcId: !Ref VPC
+
+                                  RouteTableAssociation1:
+                                    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+                                    Properties:
+                                      SubnetId: !Ref Subnet1
+                                      RouteTableId: !Ref RouteTable
+
+                                  RouteTableAssociation2:
+                                    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+                                    Properties:
+                                      SubnetId: !Ref Subnet2
+                                      RouteTableId: !Ref RouteTable
+
+                                  RouteTableAssociation3:
+                                    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+                                    Properties:
+                                      SubnetId: !Ref Subnet3
+                                      RouteTableId: !Ref RouteTable
+
+                                  InternetRoute:
+                                    Type: 'AWS::EC2::Route'
+                                    DependsOn: VPCGatewayAttachment
+                                    Properties:
+                                      GatewayId: !Ref InternetGateway
+                                      RouteTableId: !Ref RouteTable
+                                      DestinationCidrBlock: '0.0.0.0/0'
+
+
+                                  MyRouteTablePrivate1:
+                                    Type: 'AWS::EC2::RouteTable'
+                                    Properties:
+                                      VpcId: !Ref VPC
+
+                                  RouteTableAssociationprivate1:
+                                    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+                                    Properties:
+                                      SubnetId: !Ref Subnet4
+                                      RouteTableId: !Ref MyRouteTablePrivate1
+                                  
+                                  RouteTableAssociationprivate2:
+                                    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+                                    Properties:
+                                      SubnetId: !Ref Subnet5
+                                      RouteTableId: !Ref MyRouteTablePrivate1
+
+                                  RouteTableAssociationprivate3:
+                                    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+                                    Properties:
+                                      SubnetId: !Ref Subnet6
+                                      RouteTableId: !Ref MyRouteTablePrivate1
+
+                                  MyNATGateway:
+                                    Type: AWS::EC2::NatGateway
+                                    Properties:
+                                      AllocationId: !GetAtt ElasticIP1.AllocationId
+                                      SubnetId: !Ref Subnet1
+
+                                  ElasticIP1:
+                                    Type: AWS::EC2::EIP
+                                    Properties:
+                                      AllocationId: !GetAtt ElasticIP1.AllocationId
+                                      SubnetId: !Ref Subnet1
+
+                                  PrivateRouteTable1Route:
+                                    Type: AWS::EC2::Route
+                                    Properties:
+                                      RouteTableId: !Ref MyRouteTablePrivate1
+                                      DestinationCidrBlock: '0.0.0.0/0'
+                                      NatGatewayId: !Ref MyNATGateway
+                                  
+                                Outputs:
+
+                                  VPC:
+                                    Description: VPC
+                                    Value: !Ref VPC
+                                    Export:
+                                      Name: 'VPC'
+
+                                  PublicSubnet1:
+                                    Description: 'Subnet 1 on AZ1'
+                                    Value: !Ref Subnet1
+                                    Export:
+                                      Name: 'PublicSubnet1'
+
+                                  PublicSubnet2:
+                                    Description: 'Subnet 2 on AZ2'
+                                    Value: !Ref Subnet2
+                                    Export:
+                                      Name: 'PublicSubnet2'
+                                  
+                                  PublicSubnet3:
+                                    Description: 'Subnet 3 on AZ3'
+                                    Value: !Ref Subnet3
+                                    Export:
+                                      Name: 'PublicSubnet3'
+
+                                  PrivateSubnet1:
+                                    Description: 'Subnet 4 on AZ1'
+                                    Value: !Ref Subnet4
+                                    Export:
+                                      Name: 'PrivateSubnet1'
+
+                                  PrivateSubnet2:
+                                    Description: 'Subnet 5 on AZ2'
+                                    Value: !Ref Subnet5
+                                    Export:
+                                      Name: 'PrivateSubnet2'
+
+                                  PrivateSubnet3:
+                                    Description: 'Subnet 6 on AZ3'
+                                    Value: !Ref Subnet6
+                                    Export:
+                                      Name: 'PrivateSubnet3'
+                          roleArn: ""
+                      timeout: 10m
         tags: {}
   notificationRules:
     - name: stage_test
