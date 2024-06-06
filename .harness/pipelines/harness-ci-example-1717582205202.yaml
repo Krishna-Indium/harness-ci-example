@@ -73,7 +73,7 @@ pipeline:
                               S3BucketName:
                                 Type: String
                                 Description: S3 Bucket Name
-                                Default: "Harness-cft-template-s3"
+                                Default: "harness-cft-template-s3"
 
                               TagTRCDescription:
                                 Type: String
