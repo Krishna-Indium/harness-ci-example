@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_harness_ci_example_1717657336656-pr-trigger-input-set
+  identifier: Build_harness_ci_example_1717657336656prtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: Generative_AI
+  pipeline:
+    identifier: Build_harness_ci_example_1717657336656
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
