@@ -8,7 +8,7 @@ pipeline:
       codebase:
         build: <+input>
         connectorRef: account.KrishnaIndium
-        repoName: harness-ci-example
+        repoName: Simple-Node-App-Harness-Artifact
   stages:
     - stage:
         identifier: build
