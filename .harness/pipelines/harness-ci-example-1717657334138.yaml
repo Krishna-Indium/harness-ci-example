@@ -21,7 +21,7 @@ pipeline:
             steps:
               - step:
                   identifier: echo
-                  name: echo
+                  name: install deps
                   spec:
                     shell: Sh
                     command: |-
@@ -31,7 +31,7 @@ pipeline:
                   type: Run
               - step:
                   type: BuildAndPushDockerRegistry
-                  name: BuildAndPushDockerRegistry_1
+                  name: gen_ai-build
                   identifier: BuildAndPushDockerRegistry_1
                   spec:
                     connectorRef: Gen_Docker_Hub
