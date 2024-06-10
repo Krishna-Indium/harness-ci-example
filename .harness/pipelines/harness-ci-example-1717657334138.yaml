@@ -25,6 +25,7 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
+                      touch genAI.txt
                       npm install
                       npm test
                   timeout: ""
@@ -40,9 +41,9 @@ pipeline:
                       - latest
           platform:
             os: Linux
-            arch: Amd64
+            arch: Arm64
           runtime:
-            type: Cloud
+            type: Docker
             spec: {}
         type: CI
     - stage:
