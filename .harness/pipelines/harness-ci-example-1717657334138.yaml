@@ -39,11 +39,30 @@ pipeline:
                     repo: docskrishna/gen_ai
                     tags:
                       - latest
+              - step:
+                  type: AquaTrivy
+                  name: AquaTrivy_1
+                  identifier: AquaTrivy_1
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: container
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+                    privileged: true
+                    image:
+                      type: docker_v2
+                      name: docskrishna/gen_ai
+                      domain: docker.io
+                      tag: latest
           platform:
             os: Linux
             arch: Amd64
           runtime:
-            type: Docker
+            type: Cloud
             spec: {}
         type: CI
     - stage:
