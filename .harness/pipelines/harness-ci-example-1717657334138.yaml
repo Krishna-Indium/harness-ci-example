@@ -19,17 +19,31 @@ pipeline:
           cloneCodebase: true
           execution:
             steps:
-              - step:
-                  identifier: echo
-                  name: install deps
-                  spec:
-                    shell: Sh
-                    command: |-
-                      touch genAI.txt
-                      npm install
-                      npm test
-                  timeout: ""
-                  type: Run
+              - parallel:
+                  - step:
+                      identifier: echo
+                      name: install deps
+                      spec:
+                        shell: Sh
+                        command: |-
+                          touch genAI.txt
+                          npm install
+                          npm test
+                      timeout: ""
+                      type: Run
+                  - step:
+                      type: Owasp
+                      name: Owasp
+                      identifier: Owasp
+                      spec:
+                        mode: orchestration
+                        config: default
+                        target:
+                          type: repository
+                          detection: auto
+                        advanced:
+                          log:
+                            level: info
               - step:
                   type: BuildAndPushDockerRegistry
                   name: gen_ai-build
@@ -41,7 +55,7 @@ pipeline:
                       - latest
               - step:
                   type: AquaTrivy
-                  name: AquaTrivy_1
+                  name: AquaTrivy
                   identifier: AquaTrivy_1
                   spec:
                     mode: orchestration
